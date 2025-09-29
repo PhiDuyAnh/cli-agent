@@ -2,7 +2,7 @@
 
 A powerful AI Agent that lives in your command line. Built on LangChain's DeepAgents framework, it combines the flexibility of modern AI tooling with the convenience of terminal-based interaction. Intended to be a powerful RAG agent but right now it acts as a general purpose agent. More specific tools, mechanisms and prompts will be added soon.
 
-![alt text](cli_agent.png)
+<img width="970" height="463" alt="cli_agent" src="https://github.com/user-attachments/assets/84b578cc-6730-4b09-af38-a45113a5713b" />
 
 ## 💡 Key Features
 - **Persistent Memory**: Conversation tracking and memory management with Pixeltable. Only user prompts, assistant final responses and key state attribute (in this case, the DeepAgent's files state) are saved to database to avoid context overload and large number of tokens consumption. Summarizing conversation if it exceeds configurable memory size will be implemented soon.
