@@ -1,0 +1,28 @@
+services:
+  cli-agent:
+    container_name: cli-agent
+    user: root
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cli-agent:latest
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TERM=xterm-256color
+      - PIXELTABLE_HOME=/root/.pixeltable
+    volumes:
+      - ./.pixeltable:/root/.pixeltable
+      - ./.cache:/app/.cache
+    tty: true
+    stdin_open: true
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '4'
+          memory: 4G
