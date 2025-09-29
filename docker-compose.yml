@@ -12,6 +12,7 @@ services:
       - PYTHONUNBUFFERED=1
       - TERM=xterm-256color
       - PIXELTABLE_HOME=/root/.pixeltable
+      - MCP_CONFIG=/app/src/cli_agent/agent/mcp_servers/config.json
     volumes:
       - ./.pixeltable:/root/.pixeltable
       - ./.cache:/app/.cache

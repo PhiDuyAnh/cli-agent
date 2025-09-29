@@ -2,12 +2,13 @@ FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     TERM=xterm-256color \
-    PIXELTABLE_HOME=/root/.pixeltable
+    PIXELTABLE_HOME=/root/.pixeltable \
+    MCP_CONFIG=/app/src/cli_agent/agent/mcp_servers/config.json
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get update && \
-    apt-get install -y build-essential && \
+    apt-get install -y build-essential nodejs npm && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
