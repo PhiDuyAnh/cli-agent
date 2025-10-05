@@ -104,122 +104,119 @@ async def stream_agent_interactions(agent: Agent, user_input: str):
 
 async def main():
     welcome_message()
-    try:
-        agent = Agent(
-            model_name=settings.MODEL,
-            tools=TOOLS,
-            system_prompt=INSTRUCTIONS,
-            mcp_servers_config=settings.MCP_CONFIG,
-        )
-        await agent.setup()
+    agent = Agent(
+        model_name=settings.MODEL,
+        tools=TOOLS,
+        system_prompt=INSTRUCTIONS,
+        mcp_servers_config=settings.MCP_CONFIG,
+    )
+    await agent.setup()
 
-        while True:
-            try:
-                user_input = Prompt.ask("[bold cornflower_blue]You").strip()
-                
-                if user_input.lower().strip() == "/exit":
-                    console.print("\u2514 [bold]Catch you later!\n")
-                    break
+    while True:
+        try:
+            user_input = Prompt.ask("[bold cornflower_blue]You").strip()
+            
+            if user_input.lower() == "/exit":
+                console.print("\u2514 [bold]Catch you later!\n")
+                break
 
-                elif user_input.lower().strip() == "/help":
-                    help_message()
+            elif user_input.lower() == "/help":
+                help_message()
+                continue
+
+            elif user_input.lower() == "/resume":
+                try:
+                    options, memory_ids = get_chat_history()
+                    # chosen_option = Prompt.ask(
+                    #     "Please choose an option",
+                    #     choices=options,
+                    #     default=""
+                    # )
+                    console.print("\u2514 [bold]Resume a conversation or press 'Ctrl-C' to go back:")
+                    chosen_index = cutie.select(options)
+
+                    # After choosing an option
+                    chosen_option = memory_ids[chosen_index]
+                    
+                    agent = await clear(retained_memory=Memory(chosen_option))
+
+                    print_past_conversation(chosen_option, console)
+                    console.print(f"[bold green]Resuming conversation...\n")
                     continue
-
-                elif user_input.lower().strip() == "/resume":
-                    try:
-                        options, memory_ids = get_chat_history()
-                        # chosen_option = Prompt.ask(
-                        #     "Please choose an option",
-                        #     choices=options,
-                        #     default=""
-                        # )
-                        console.print("\u2514 [bold]Resume a conversation or press 'Ctrl-C' to go back:")
-                        chosen_index = cutie.select(options)
-
-                        # After choosing an option
-                        chosen_option = memory_ids[chosen_index]
-                        
-                        agent = await clear(retained_memory=Memory(chosen_option))
-
-                        print_past_conversation(chosen_option, console)
-                        console.print(f"[bold green]Resuming conversation...\n")
-                        continue
-                    except KeyboardInterrupt:
-                        continue
-                
-                elif user_input.lower().strip() in ["/clear", "/reset"]:
-                    agent.reset_memory()
-                    agent = await clear()
+                except KeyboardInterrupt:
                     continue
+            
+            elif user_input.lower() in ["/clear", "/reset"]:
+                agent.reset_memory()
+                agent = await clear()
+                continue
 
-                elif user_input.lower().strip() == "/new":
-                    agent = await clear()
+            elif user_input.lower() == "/new":
+                agent = await clear()
+                continue
+
+            elif user_input.lower().startswith("/delete"):
+                if user_input.lower() == "/delete":
+                    console.print("\u2514 [bold red1]Please specify a chat ID to be deleted!")
                     continue
+                else:
+                    splitted_input = user_input.lower().split(" ")
 
-                elif user_input.lower().startswith("/delete"):
-                    if user_input.lower().strip() == "/delete":
-                        console.print("\u2514 [bold red1]Please specify a chat ID to be deleted!")
+                    if splitted_input[0] != "/delete" or len(splitted_input) > 2:
+                        console.print("\u2514 [bold red1]Please use the correct command:[/bold red1]", end=" ")
+                        console.print("/delete [chat ID]", markup=False)
                         continue
                     else:
-                        splitted_input = user_input.lower().strip().split(" ")
-
-                        if splitted_input[0] != "/delete" or len(splitted_input) > 2:
-                            console.print("\u2514 [bold red1]Please use the correct command:[/bold red1]", end=" ")
-                            console.print("/delete [chat ID]", markup=False)
-                            continue
-                        else:
-                            memory_id = splitted_input[1]
-                            _, chat_ids = get_chat_history()
-                            if memory_id not in chat_ids:
-                                console.print("\u2514 [bold red1]Please specify a correct chat ID to be deleted!")
-                                continue
-
-                            delete_conversation(agent, memory_id)
-                            console.print(f"\u2514 [bold green]Conversation {memory_id} deleted successfully.")
-
-                            # Handle case where user deletes the current chat or all chat history, we need to setup another memory table
-                            if agent.memory.directory == memory_id:
-                                console.print("\n[bold red]The current chat history was deleted. A new one will be created.\n")
-                                agent = Agent(
-                                model_name=settings.MODEL,
-                                tools=TOOLS,
-                                system_prompt=INSTRUCTIONS,
-                                mcp_servers_config=settings.MCP_CONFIG,
-                                )
-                                await agent.setup()
+                        memory_id = splitted_input[1]
+                        _, chat_ids = get_chat_history()
+                        if memory_id not in chat_ids:
+                            console.print("\u2514 [bold red1]Please specify a correct chat ID to be deleted!")
                             continue
 
-                elif user_input.lower().strip() == "/tools":
-                    built_in_tools, tools, mcp_servers = agent.list_tools()
-                    console.print("\u2514", end=" ")
-                    if built_in_tools:
-                        console.print("[bold white]Built in tools:")
-                        for tool in built_in_tools:
-                            console.print(f"○ {tool}")
-                        console.print()
-                    
-                    if tools:
-                        console.print("[bold white]Added tools:")
-                        for tool in tools:
-                            console.print(f"○ {tool}")
-                        console.print()
+                        delete_conversation(agent, memory_id)
+                        console.print(f"\u2514 [bold green]Conversation {memory_id} deleted successfully.")
 
-                    if mcp_servers:
-                        console.print("[bold white]MCP servers:")
-                        for server in mcp_servers:
-                            console.print(f"○ {server}")
-                        console.print()
+                        # Handle case where user deletes the current chat or all chat history, we need to setup another memory table
+                        if agent.memory.directory == memory_id:
+                            console.print("\n[bold red]The current chat history was deleted. A new one will be created.\n")
+                            agent = Agent(
+                            model_name=settings.MODEL,
+                            tools=TOOLS,
+                            system_prompt=INSTRUCTIONS,
+                            mcp_servers_config=settings.MCP_CONFIG,
+                            )
+                            await agent.setup()
+                        continue
 
-                    continue
+            elif user_input.lower() == "/tools":
+                built_in_tools, tools, mcp_servers = agent.list_tools()
+                console.print("\u2514", end=" ")
+                if built_in_tools:
+                    console.print("[bold white]Built in tools:")
+                    for tool in built_in_tools:
+                        console.print(f"○ {tool}")
+                    console.print()
                 
-                if not user_input: # User types nothing or types only whitespaces then enters
-                    continue
-                
-                await stream_agent_interactions(agent, user_input)
-            except KeyboardInterrupt:
-                console.print("\n\u2514 [bold gold1]Please use '/exit' to quit!")
-    finally:
-        pass
+                if tools:
+                    console.print("[bold white]Added tools:")
+                    for tool in tools:
+                        console.print(f"○ {tool}")
+                    console.print()
+
+                if mcp_servers:
+                    console.print("[bold white]MCP servers:")
+                    for server in mcp_servers:
+                        console.print(f"○ {server}")
+                    console.print()
+
+                continue
+            
+            if not user_input: # User types nothing or types only whitespaces then enters
+                continue
+            
+            await stream_agent_interactions(agent, user_input)
+        except KeyboardInterrupt:
+            console.print("\n\u2514 [bold gold1]Please use '/exit' to quit!")
 
 
 if __name__ == "__main__":
